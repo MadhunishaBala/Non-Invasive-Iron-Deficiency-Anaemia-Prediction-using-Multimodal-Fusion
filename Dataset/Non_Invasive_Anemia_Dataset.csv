@@ -1,6 +1,11 @@
 ﻿Subject_ID,Image_ID_Conjunctiva,Image_ID_Palm,Image_ID_Nail,HB_LEVEL,SEVERITY,Age(Months),Age (Years),GENDER,TYPE,COUNTRY,Data_Type
+<<<<<<< Updated upstream
+ID0001,Image_0001_C.png,Image_0001_P,Image_0001_N,9.8,Moderate,6,0.5,Female,Anemic,Ghana,Train
+ID0002,Image_0002_C.png,Image_0002_P,Image_0002_N,9.9,Moderate,24,2,Male,Anemic,Ghana,Train
+=======
 ID0001,Image_0001_C,Image_0001_P,Image_0001_N,9.8,Moderate,6,0.5,Female,Anemic,Ghana,Train
 ID0002,Image_0002_C,Image_0002_P,Image_0002_N,9.9,Moderate,24,2,Male,Anemic,Ghana,Train
+>>>>>>> Stashed changes
 ID0003,Image_0003_C,Image_0003_P,Image_0003_N,11.1,Non-Anemic,24,2,Female,Non-Anemic,Ghana,Train
 ID0004,Image_0004_C,Image_0004_P,Image_0004_N,12.5,Non-Anemic,12,1,Male,Non-Anemic,Ghana,Train
 ID0005,Image_0005_C,Image_0005_P,Image_0005_N,9.9,Moderate,24,2,Male,Anemic,Ghana,Train
