@@ -1,50 +1,52 @@
-from flask import Flask, render_template, request
+import gradio as gr
 import tensorflow as tf
 import numpy as np
 import cv2
 
-app = Flask(__name__)
-
 # Load model once
 model = tf.keras.models.load_model("anemia_detection_model.h5", compile=False)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    result = None
-    hb_val = None
+# Preprocessing helper
+def preprocess_image(img):
+    img = cv2.resize(img, (224, 224)) / 255.0
+    return np.expand_dims(img, axis=0)
 
-    if request.method == "POST":
-        palm_file = request.files.get("palm")
-        nail_file = request.files.get("nail")
-        age = float(request.form.get("age"))
-        gender = request.form.get("gender")
+# Prediction function
+def predict(palm, nail, age, gender):
+    # Convert Gradio PIL images to OpenCV format
+    palm = cv2.cvtColor(np.array(palm), cv2.COLOR_RGB2BGR)
+    nail = cv2.cvtColor(np.array(nail), cv2.COLOR_RGB2BGR)
 
-        if palm_file and nail_file:
-            # Process Palm
-            palm_img = np.frombuffer(palm_file.read(), np.uint8)
-            palm_img = cv2.imdecode(palm_img, cv2.IMREAD_COLOR)
-            palm_img = cv2.resize(palm_img, (224,224)) / 255.0
-            palm_input = np.expand_dims(palm_img, axis=0)
+    palm_input = preprocess_image(palm)
+    nail_input = preprocess_image(nail)
 
-            # Process Nail
-            nail_img = np.frombuffer(nail_file.read(), np.uint8)
-            nail_img = cv2.imdecode(nail_img, cv2.IMREAD_COLOR)
-            nail_img = cv2.resize(nail_img, (224,224)) / 255.0
-            nail_input = np.expand_dims(nail_img, axis=0)
+    # Meta input (normalize age, encode gender)
+    meta_input = np.array([[age/100.0, 1 if gender == "Male" else 0]], dtype=np.float32)
 
-            # Meta
-            meta_input = np.array([[age/100.0, 1 if gender=="Male" else 0]], dtype=np.float32)
+    # Run prediction
+    hb, anemia_prob = model.predict({
+        "palm": palm_input,
+        "nail": nail_input,
+        "meta": meta_input
+    })
 
-            # Predict
-            hb, anemia_prob = model.predict({
-                "palm": palm_input,
-                "nail": nail_input,
-                "meta": meta_input
-            })
-            hb_val = hb[0][0]
-            result = "Anemic" if anemia_prob[0][0] > 0.5 else "Non-Anemic"
+    hb_val = hb[0][0]
+    result = "Anemic" if anemia_prob[0][0] > 0.5 else "Non-Anemic"
 
-    return render_template("index.html", result=result, hb_val=hb_val)
+    return f"Hemoglobin: {hb_val:.2f} g/dL\nPrediction: {result}"
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Gradio interface
+iface = gr.Interface(
+    fn=predict,
+    inputs=[
+        gr.Image(type="pil", label="Palm Image"),
+        gr.Image(type="pil", label="Nail Image"),
+        gr.Number(label="Age"),
+        gr.Radio(choices=["Male", "Female"], label="Gender")
+    ],
+    outputs="text",
+    title="Non-Invasive Anemia Detection",
+    description="Upload palm and nail images, enter age and gender to predict anemia risk."
+)
+
+iface.launch()
