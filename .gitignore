@@ -1,0 +1,7 @@
+# create .gitignore
+echo "Data/" >> .gitignore
+echo "*.keras" >> .gitignore
+echo "*.h5" >> .gitignore
+echo "__pycache__/" >> .gitignore
+echo "Regression_Models/" >> .gitignore
+echo "Models/" >> .gitignore
