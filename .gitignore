@@ -4,3 +4,6 @@ Data/
 __pycache__/
 Regression_Models/
 Models/
+# add to .gitignore
+echo "anemia_app/model/" >> .gitignore
+echo "*.h5" >> .gitignore
