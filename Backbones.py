@@ -60,7 +60,6 @@ def CNN_3(input_shape=(224, 224, 3), name="backbone"):
     x = layers.BatchNormalization()(x)
     x = layers.MaxPooling2D(2)(x)
 
-    # Block with residual
     shortcut = x
     x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
     x = layers.BatchNormalization()(x)
@@ -82,7 +81,34 @@ def CNN_3(input_shape=(224, 224, 3), name="backbone"):
     x = layers.MaxPooling2D(2)(x)
     return Model(inp, x, name=name)
 
-# MobileNet
+def CNN_4(input_shape=(224, 224, 3), name="backbone"):
+    inp = layers.Input(shape=input_shape, name=f"{name}_input")
+    x = layers.Conv2D(16, 3, activation="relu", padding="same")(inp)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(32, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(128, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(128, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    return Model(inp, x, name=name)
+
+
+def CNN_5(input_shape=(224, 224, 3), name="backbone"):
+    inp = layers.Input(shape=input_shape, name=f"{name}_input")
+    x = layers.Conv2D(32, (2,2), padding="same", activation="relu")(inp)
+    x = layers.MaxPooling2D(2,2)(x)
+    x = layers.Conv2D(64, (2,2), padding="same", activation="relu")(x)
+    x = layers.MaxPooling2D(2,2)(x)
+    x = layers.Conv2D(128, (2,2), padding="same", activation="relu")(x)
+    x = layers.MaxPooling2D(2,2)(x)
+    # Note: no GlobalAveragePooling here — your attention layers expect a spatial output
+    return Model(inp, x, name=name)
+
+
+# MobileNetV2
 
 def MobileNetV2_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.MobileNetV2(
@@ -105,6 +131,8 @@ def MobileNetV2_1(input_shape=(224, 224, 3), name="backbone"):
     x   = layers.Activation("relu")(x)
     return Model(inp, x, name=name) 
 
+ # EfficientNetB0   
+
 def EfficientNetB0_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.EfficientNetB0(
         input_shape=input_shape, include_top=False, weights="imagenet"
@@ -119,8 +147,10 @@ def EfficientNetB0_1(input_shape=(224, 224, 3), name="backbone"):
     x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
+    x = layers.Dropout(0.4)(x)
     return Model(inp, x, name=name)
 
+#DenseNet
 
 def DenseNet_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.DenseNet121(
@@ -139,6 +169,24 @@ def DenseNet_1(input_shape=(224, 224, 3), name="backbone"):
     return Model(inp, x, name=name)
 
 
+def DenseNet169_1(input_shape=(224, 224, 3), name="backbone"):
+    base = tf.keras.applications.DenseNet169(
+        input_shape=input_shape, include_top=False, weights="imagenet"
+    )
+    base.trainable = False
+    for layer in base.layers[-30:]:
+        layer.trainable = True
+
+    inp = layers.Input(shape=input_shape, name=f"{name}_input")
+    x   = layers.Lambda(lambda x: densenet_preprocess(x * 255.0))(inp)
+    x   = base(x, training=False)
+    x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
+    x   = layers.BatchNormalization()(x)
+    x   = layers.Activation("relu")(x)
+    return Model(inp, x, name=name)
+
+
+# ResNet50
 
 def ResNet50_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.ResNet50(
@@ -160,11 +208,14 @@ def ResNet50_1(input_shape=(224, 224, 3), name="backbone"):
 BACKBONE_REGISTRY = {
     "cnn1": CNN_1,
     "cnn2": CNN_2,
-    "cnn3": CNN_3 ,
+    "cnn3": CNN_3,
+    "cnn4": CNN_4,  
+    "cnn5": CNN_5,
     "mobilenetv2":    MobileNetV2_1,
     "efficientnetb0": EfficientNetB0_1,
     "densenet121":    DenseNet_1,
-    "resnet50"      : ResNet50_1, 
+    "densenet169": DenseNet169_1,
+    "resnet50":       ResNet50_1,
 }
 
 def get_backbone(backbone, input_shape, name):
