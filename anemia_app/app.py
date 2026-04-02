@@ -7,7 +7,7 @@ import cv2
 app = Flask(__name__)
 
 # ── Load model ───────────────────────────────────────────────────
-model = tf.keras.models.load_model(r"model/CNN_Model.keras", compile=False)
+model = tf.keras.models.load_model(r"model/CNN1_Joint_BestFold.keras", compile=False)
 print("✓ Model loaded!")
 
 # ── Constants ─────────────────────────────────────────────────────
@@ -146,4 +146,6 @@ def predict():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True, port=5000)
+    # For local testing
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
