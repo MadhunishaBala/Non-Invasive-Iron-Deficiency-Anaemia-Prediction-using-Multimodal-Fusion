@@ -210,7 +210,7 @@ def build_self_cross(backbone="cnn4", mode="joint"):
 
 # Fusion attention only, no self or cross
 
-def build_fusion_only(backbone="cnn1", mode="joint"):
+def build_fusion_only(backbone="cnn4", mode="joint"): # Called into jointtask.ipynb
     """Variant 3 — Fusion attention only, no self or cross"""
     img_shape = (224, 224, 3)
     meta_dim  = 2
