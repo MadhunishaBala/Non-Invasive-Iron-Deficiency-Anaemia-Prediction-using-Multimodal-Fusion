@@ -104,7 +104,6 @@ def CNN_5(input_shape=(224, 224, 3), name="backbone"):
     x = layers.MaxPooling2D(2,2)(x)
     x = layers.Conv2D(128, (2,2), padding="same", activation="relu")(x)
     x = layers.MaxPooling2D(2,2)(x)
-    # Note: no GlobalAveragePooling here — your attention layers expect a spatial output
     return Model(inp, x, name=name)
 
 
@@ -119,16 +118,14 @@ def MobileNetV2_1(input_shape=(224, 224, 3), name="backbone"):
 
     base.trainable = False
     
-    for layer in base.layers[-10:]:
-        layer.trainable = True
-    
     inp = layers.Input(shape=input_shape, name=f"{name}_input")
     x   = layers.Lambda(lambda x: mobilenet_preprocess(x * 255.0))(inp)
     x   = base(x, training=False)              # (batch, 7, 7, 1280)
     x   = layers.Conv2D(128, 1, padding="same",
-                         name=f"{name}_proj")(x) # project to 128
+                         name=f"{name}_proj")(x) 
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
+    x   = layers.Dropout(0.4)(x)
     return Model(inp, x, name=name) 
 
  # EfficientNetB0   
@@ -137,6 +134,7 @@ def EfficientNetB0_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.EfficientNetB0(
         input_shape=input_shape, include_top=False, weights="imagenet"
     )
+   
     base.trainable = False
     for layer in base.layers[-50:]:
         layer.trainable = True
@@ -144,7 +142,9 @@ def EfficientNetB0_1(input_shape=(224, 224, 3), name="backbone"):
     inp = layers.Input(shape=input_shape, name=f"{name}_input")
     x   = layers.Lambda(lambda x: efficientnet_preprocess(x * 255.0))(inp)
     x   = base(x, training=False)
-    x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
+    x   = layers.Conv2D(128, 1, padding="same",
+                        kernel_regularizer=tf.keras.regularizers.l2(1e-4),
+                        name=f"{name}_proj")(x)
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
     x = layers.Dropout(0.4)(x)
@@ -156,9 +156,11 @@ def DenseNet_1(input_shape=(224, 224, 3), name="backbone"):
     base = tf.keras.applications.DenseNet121(
         input_shape=input_shape, include_top=False, weights="imagenet"
     )
+
     base.trainable = False
     for layer in base.layers[-30:]:
         layer.trainable = True
+   
 
     inp = layers.Input(shape=input_shape, name=f"{name}_input")
     x   = layers.Lambda(lambda x: densenet_preprocess(x * 255.0))(inp)
@@ -166,6 +168,7 @@ def DenseNet_1(input_shape=(224, 224, 3), name="backbone"):
     x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
+    x   = layers.Dropout(0.4)(x)
     return Model(inp, x, name=name)
 
 
@@ -183,6 +186,7 @@ def DenseNet169_1(input_shape=(224, 224, 3), name="backbone"):
     x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
+    x   = layers.Dropout(0.4)(x)
     return Model(inp, x, name=name)
 
 
@@ -202,6 +206,7 @@ def ResNet50_1(input_shape=(224, 224, 3), name="backbone"):
     x   = layers.Conv2D(128, 1, padding="same", name=f"{name}_proj")(x)
     x   = layers.BatchNormalization()(x)
     x   = layers.Activation("relu")(x)
+    x   = layers.Dropout(0.4)(x)
     return Model(inp, x, name=name)
 
 
