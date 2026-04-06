@@ -40,7 +40,7 @@ Classification and haemoglobin regression are performed **simultaneously in a si
 | Haemoglobin MAE | **0.689 g/dL** |
 | R² | 0.53 |
 
-The model correctly identified **78% of true anaemic cases** — outperforming the baseline comparison model on the most clinically critical metric despite using less metadata.
+The model correctly identified **78% of true anaemic cases** , outperforming the baseline comparison model on the most clinically critical metric despite using less metadata.
 
 
 ## Interpretability
